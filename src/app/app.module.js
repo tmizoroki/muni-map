@@ -8,7 +8,7 @@
 
       //Custom modules
       'app.core',
-      'app.map',
+      'app.main',
       'app.layout'
     ]);
 

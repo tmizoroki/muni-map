@@ -2,14 +2,14 @@
   'use strict';
   
   angular
-    .module('app.map')
+    .module('app.main')
     .config(configFunction);
   
   configFunction.$inject = ['$routeProvider'];
   
   function configFunction($routeProvider) {
     $routeProvider.when('/', {
-      templateUrl: 'src/app/map/map.html'
+      templateUrl: 'src/app/main/main.html'
     }); 
   }
   
