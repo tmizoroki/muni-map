@@ -10,8 +10,7 @@
   /* @ngInject */
   function nextbusDataService($http, $q, AGENCY) {
     var service = {
-      getRoutes: getRoutes,
-      getVehicles: getVehicles
+      getRoutes: getRoutes
     };
     return service;
 
