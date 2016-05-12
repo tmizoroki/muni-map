@@ -7,7 +7,8 @@
       'ngRoute',
 
       //Custom modules
-      'app.map'
+      'app.map',
+      'app.layout'
     ]);
 
 })();
