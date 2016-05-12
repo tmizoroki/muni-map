@@ -20,14 +20,19 @@
   <script src="node_modules/angular/angular.min.js"></script>
   <script src="node_modules/angular-route/angular-route.js"></script>
 
-  <!--main app module-->
+  <!-- main app module -->
   <script src="src/app/app.module.js"></script>
 
-  <!--layout module-->
+  <!-- core module -->
+  <script src="src/app/core/core.module.js"></script>
+  <script src="src/app/core/constants.js"></script>
+  <script src="src/app/core/nextbusData.service.js"></script>
+
+  <!-- layout module -->
   <script src="src/app/layout/layout.module.js"></script>
   <script src="src/app/layout/navbar.directive.js"></script>
 
-  <!--map module-->
+  <!-- map module -->
   <script src="src/app/map/map.module.js"></script>
   <script src="src/app/map/config.route.js"></script>
   <script src="src/app/map/directives/sidebar.directive.js"></script>
