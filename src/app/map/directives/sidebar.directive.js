@@ -18,7 +18,26 @@
     return directive;
   }
 
-  function SidebarController() {
+  SidebarController.$inject = ['nextbusDataService'];
 
+  function SidebarController(nextbusDataService) {
+    var vm = this;
+    vm.routes = [];
+    
+    activate();
+
+    function activate() {
+      return getRoutes().then(function() {
+        console.log('Got routes');
+      });
+    }
+
+    function getRoutes() {
+      return nextbusDataService.getRoutes()
+        .then(function(routes) {
+          vm.routes = routes;
+          return vm.routes;
+        })
+    }
   }
 })();
