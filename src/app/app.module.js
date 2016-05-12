@@ -7,6 +7,7 @@
       'ngRoute',
 
       //Custom modules
+      'app.core',
       'app.map',
       'app.layout'
     ]);
