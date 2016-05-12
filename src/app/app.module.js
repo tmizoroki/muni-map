@@ -4,9 +4,10 @@
   angular
     .module('app', [
       //Angular modules
-      'ngRoute'
+      'ngRoute',
 
       //Custom modules
+      'app.map'
     ]);
 
 })();
