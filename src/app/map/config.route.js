@@ -9,7 +9,7 @@
   
   function configFunction($routeProvider) {
     $routeProvider.when('/', {
-      templateUrl: 'app/map/map.html'
+      templateUrl: 'src/app/map/map.html'
     }); 
   }
   
