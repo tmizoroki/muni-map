@@ -14,5 +14,13 @@
     "d3"
   ],
   "author": "Tomio Mizoroki",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "angular": "^1.5.5",
+    "angular-route": "^1.5.5",
+    "bootstrap": "^3.3.6",
+    "d3": "^3.5.17",
+    "jquery": "^2.2.3",
+    "restbus": "^1.1.2"
+  }
 }
