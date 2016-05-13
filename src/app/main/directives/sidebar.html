@@ -1,7 +1,8 @@
 <div class="col-sm-3 col-md-2 sidebar">
   <ul class="nav nav-sidebar">
-    <li ng-repeat="route in vm.routes">
-      <a href="#" ng-bind="route.title"></a>
+    <li ng-repeat="route in vm.routes"
+        ng-class="{'active' : route.active }">
+      <a ng-click="vm.toggleRoute({route: route})" ng-bind="route.title"></a>
     </li>
   </ul>
 </div>
