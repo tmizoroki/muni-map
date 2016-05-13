@@ -9,9 +9,9 @@
 
   function d3Map($window, d3Service) {
     var directive = {
-      // bindToController: true,
-      // controller: D3MapController,
-      // controllerAs: 'vm',
+      bindToController: true,
+      controller: D3MapController,
+      controllerAs: 'vm',
       link: link,
       restrict: 'EA',
       scope: {
@@ -100,9 +100,28 @@
     }      
   }
 
+  D3MapController.$inject = ['nextbusDataService'];
+  function D3MapController(nextbusDataService) {
+    var vm = this;
 
-  /* @ngInject */
-  // function D3MapController() {
+    vm.vehiclesByRoute = {};
+    vm.getVehiclesByRoute = getVehiclesByRoute;
 
-  // }
+    activate();
+
+    function activate() {
+      return getVehiclesByRoute().then(function() {
+        console.log('Got vehicles')
+      });
+    }
+
+    function getVehiclesByRoute(route) {
+      return nextbusDataService.getVehiclesByRoute()
+        .then(function(vehicles) {
+          vm.vehiclesByRoute[route] = vehicles;
+          return vehiclesByRoute[route];
+        })
+    }
+
+  }
 })();
