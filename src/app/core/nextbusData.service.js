@@ -7,10 +7,10 @@
 
   nextbusDataService.$inject = ['$http', '$q', 'AGENCY'];
 
-  /* @ngInject */
   function nextbusDataService($http, $q, AGENCY) {
     var service = {
-      getRoutes: getRoutes
+      getRoutes: getRoutes,
+      getRoute: getRoute
     };
     return service;
 
@@ -27,6 +27,27 @@
 
       function getRoutesFailed(e) {
         var newMessage = 'XHR Failed for getRoutes';
+        if (e.data && e.data.description) {
+          newMessage = newMessage + '\n' + e.data.description;
+        }
+        e.data.description = newMessage;
+        console.error(newMessage);
+        return $q.reject(e);
+      }
+    }
+
+    function getRoute(routeId) {
+      var url = ['http://localhost:3000','/agencies/', AGENCY, '/routes/', routeId].join('');
+      return $http.get(url)
+        .then(getRouteComplete)
+        .catch(getRouteFailed);
+
+      function getRouteComplete(data, status, headers, config) {
+        return data.data;
+      }
+
+      function getRouteFailed(e) {
+        var newMessage = 'XHR Failed for getRoute';
         if (e.data && e.data.description) {
           newMessage = newMessage + '\n' + e.data.description;
         }
