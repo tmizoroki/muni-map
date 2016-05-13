@@ -66,7 +66,8 @@
                .data(json.features)
                .enter()
                .append("path")
-               .attr("d", path);
+               .attr("d", path)
+               .style("fill", "steelblue");
           });
 
           // remove all previous items before render
