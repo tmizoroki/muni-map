@@ -22,13 +22,25 @@
     function link(scope, element, attrs) {
 
       d3Service.d3().then(function(d3) {
-        var margin = parseInt(attrs.margin) || 20;
-        var barHeight = parseInt(attrs.barHeight) || 20;
-        var barPadding = parseInt(attrs.barPadding) || 5;
+
+        //setup variables
+        var width = d3.select(element[0]).node().offsetWidth;
+        var height = 800;
 
         var svg = d3.select(element[0])
                     .append('svg')
-                    .style('width', '100%');
+                    .attr('width', width)
+                    .attr('height', height);
+                    // .style('width', '100%');
+
+        var projection = d3.geo.mercator()
+            .center([-122.433701, 37.767683])
+            .scale(250000)
+            .translate([width / 2, height / 2]);
+
+        //Define default path generator
+        var path = d3.geo.path()
+           .projection(projection);
 
         //Browser onresize event
         window.onresize = function() {
@@ -36,12 +48,7 @@
         };
 
         // hard-code data
-        scope.data = [
-          {name: "Greg", score: 98},
-          {name: "Ari", score: 96},
-          {name: 'Q', score: 75},
-          {name: "Loser", score: 48}
-        ];
+        scope.data = [];
         
         // Watch for resize event
         scope.$watch(function() {
@@ -51,44 +58,42 @@
         });
         
         scope.render = function(data) {
+          //Load in GeoJSON data
+          d3.json("/src/content/geoJSON/neighborhoods.json", function(json) {
+            
+          //Browserind data and create one path per GeoJSON feature
+            svg.selectAll("path")
+               .data(json.features)
+               .enter()
+               .append("path")
+               .attr("d", path);
+          });
+
           // remove all previous items before render
-          svg.selectAll('*').remove();
+          // svg.selectAll('*').remove();
        
           // If we don't pass any data, return out of the element
-          if (!data) return;
-       
-          // setup variables
-          var width = d3.select(element[0]).node().offsetWidth - margin,
-              // calculate the height
-              height = scope.data.length * (barHeight + barPadding),
-              // Use the category20() scale function for multicolor support
-              color = d3.scale.category20(),
-              // our xScale
-              xScale = d3.scale.linear()
-                .domain([0, d3.max(data, function(d) {
-                  return d.score;
-                })])
-                .range([0, width]);
+          // if (!data) return;
        
           // set the height based on the calculations above
-          svg.attr('height', height);
+          // svg.attr('height', height);
        
           //create the rectangles for the bar chart
-          svg.selectAll('rect')
-            .data(data).enter()
-              .append('rect')
-              .attr('height', barHeight)
-              .attr('width', 140)
-              .attr('x', Math.round(margin/2))
-              .attr('y', function(d,i) {
-                return i * (barHeight + barPadding);
-              })
-              .attr('fill', function(d) { return color(d.score); })
-              .transition()
-                .duration(1000)
-                .attr('width', function(d) {
-                  return xScale(d.score);
-                });
+          // svg.selectAll('rect')
+          //   .data(data).enter()
+          //     .append('rect')
+          //     .attr('height', barHeight)
+          //     .attr('width', 140)
+          //     .attr('x', Math.round(margin/2))
+          //     .attr('y', function(d,i) {
+          //       return i * (barHeight + barPadding);
+          //     })
+          //     .attr('fill', function(d) { return color(d.score); })
+          //     .transition()
+          //       .duration(1000)
+          //       .attr('width', function(d) {
+          //         return xScale(d.score);
+          //       });
         }
       });
     }      
