@@ -11,7 +11,10 @@
       controller: SidebarController,
       controllerAs: 'vm',
       restrict: 'E',
+      bindToController: true,
       scope: {
+        activeRoutes: '=',
+        toggleRoute: '&'
       }
     };
 
@@ -25,6 +28,8 @@
     vm.routes = [];
     
     activate();
+
+    ////////////////
 
     function activate() {
       return getRoutes().then(function() {
