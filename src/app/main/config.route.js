@@ -9,7 +9,9 @@
   
   function configFunction($routeProvider) {
     $routeProvider.when('/', {
-      templateUrl: 'src/app/main/main.html'
+      templateUrl: 'src/app/main/main.html',
+      controller: 'MainController',
+      controllerAs: 'vm'
     }); 
   }
   
