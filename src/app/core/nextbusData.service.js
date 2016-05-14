@@ -11,6 +11,7 @@
     var service = {
       getRoutes: getRoutes,
       getRoute: getRoute,
+      getVehicles: getVehicles,
       getVehiclesByRoute: getVehiclesByRoute
     };
     return service;
@@ -53,6 +54,21 @@
 
       function getRouteFailed(e) {
         return xhrFailed(e, 'getRoute');
+      }
+    }
+
+    function getVehicles() {
+      var url = ['http://localhost:3000','/agencies/', AGENCY, '/vehicles'].join('');
+      return $http.get(url)
+        .then(getVehiclesComplete)
+        .catch(getVehiclesFailed);
+
+      function getVehiclesComplete(data, status, headers, config) {
+        return data.data;
+      }
+
+      function getVehiclesFailed(e) {
+        return xhrFailed(e, 'getVehicles');
       }
     }
 
