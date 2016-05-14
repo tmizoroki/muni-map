@@ -21,27 +21,25 @@
     return directive;
 
     function link(scope, element, attrs) {
-      scope.data = {vehicles: {}};
 
       /**********
        Listen for routeAdded or routeRemoved Events
       **********/
 
+      scope.mapData = {
+        vehicles: []
+      };
+
       scope.$on('routeAdded', function(e, route) {
-        scope.vm.getVehiclesByRoute(route)
-          .then(function(vehicles) {
-            scope.vm.vehiclesByRoute[route] = vehicles;
-            scope.data.vehicles = scope.vm.vehiclesByRoute;
-            console.log('routeAddedData', scope.data.vehicles);
-            scope.render(scope.data);
-          });
+        scope.vm.vehiclesByRoute[route] = scope.vm.vehicles[route];
+        scope.mapData.vehicles = scope.vm.vehiclesByRoute;
+        scope.render(scope.mapData);
       });
 
       scope.$on('routeRemoved', function(e, route) {
         delete scope.vm.vehiclesByRoute[route];
-        delete scope.data.vehicles[route];
-        console.log('routeRemovedData', scope.data.vehicles);
-        scope.render(scope.data);
+        delete scope.mapData.vehicles[route];
+        scope.render(scope.mapData);
       });
 
       /**********
@@ -78,7 +76,7 @@
         scope.$watch(function() {
           return angular.element($window)[0].innerWidth;
         }, function() {
-          scope.render(scope.data);
+          scope.render(scope.mapData);
         });
 
         /**********
@@ -86,7 +84,7 @@
         **********/
         
         scope.render = function(data) {
-
+          console.log('RENDERED');
           // Empty flattenedData array
           var flattenedData = [];
 
@@ -117,8 +115,6 @@
             Display Vehicle Position
           **********/
 
-          console.log(scope.vm.activeRoutes);
-
           //Update vehicles
           var vehicleCircles = svg.selectAll('circle')
             .data(flattenedData)
@@ -130,6 +126,8 @@
             })
             .attr('r', 5)
             .style('stroke', function(d) {
+              console.log(scope.vm.activeRoutes);
+              console.log(scope.vm.activeRoutes[d.routeId]);
               return scope.vm.activeRoutes[d.routeId].color;
             })
             .style('stroke-width', 2)
@@ -207,16 +205,45 @@
     D3 Map Controller
   **********/
 
-  D3MapController.$inject = ['nextbusDataService'];
+  D3MapController.$inject = ['$scope', '$interval', 'nextbusDataService'];
 
-  function D3MapController(nextbusDataService) {
+  function D3MapController($scope, $interval, nextbusDataService) {
     var vm = this;
 
+    vm.vehicles;
     vm.vehiclesByRoute = {};
     vm.getVehiclesByRoute = getVehiclesByRoute;
 
+    activate();
+
+    ////////////////
+
+    function activate() {
+      return getVehicles().then(function() {
+        $interval(getVehicles, 15000);
+      });
+    }
+
+    function getVehicles() {
+      return nextbusDataService.getVehicles()
+        .then(function(vehicles) {
+          return vm.vehicles = _.groupBy(vehicles, function(vehicle) {
+            return vehicle.routeId;
+          });  
+        })
+        .then(function(groupedVehicles) {
+          return _.map(vm.vehiclesByRoute, function(route, routeId) {
+            return groupedVehicles[routeId];
+          });
+        })
+        .then(function(updatedVehiclesByRoute) {
+          $scope.mapData.vehicles = updatedVehiclesByRoute;
+          $scope.render && $scope.render($scope.mapData);
+        });
+    }
+
     function getVehiclesByRoute(route) {
-      return nextbusDataService.getVehiclesByRoute(route)
+      return nextbusDataService.getVehiclesByRoute(route);
     }
   }
 })();
