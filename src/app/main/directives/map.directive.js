@@ -23,6 +23,10 @@
     function link(scope, element, attrs) {
       scope.data = {vehicles: {}};
 
+      /**********
+       Listen for routeAdded or routeRemoved Events
+      **********/
+
       scope.$on('routeAdded', function(e, route) {
         scope.vm.getVehiclesByRoute(route)
           .then(function(vehicles) {
@@ -39,6 +43,10 @@
         console.log('routeRemovedData', scope.data.vehicles);
         scope.render(scope.data);
       });
+
+      /**********
+        Begin D3
+      **********/
 
       d3Service.d3().then(function(d3) {
 
@@ -72,29 +80,32 @@
         }, function() {
           scope.render(scope.data);
         });
+
+        /**********
+          Render
+        **********/
         
         scope.render = function(data) {
 
+          // Empty flattenedData array
           var flattenedData = [];
 
           // If we don't pass any data, return out of the element
           if (!data) return;
 
-          console.log('render', data);
           //Load in GeoJSON data
           d3.json("/src/content/geoJSON/neighborhoods.json", function(json) {
             
-          //Browserind data and create one path per GeoJSON feature
+            //Create one path per GeoJSON feature
             svg.selectAll("path")
-               .data(json.features)
-               .enter()
-               .append("path")
-               .attr("d", path)
-               .style("fill", "steelblue");
+             .data(json.features)
+             .enter()
+             .append("path")
+             .attr("d", path)
+             .style("fill", "steelblue");
           });
 
-          console.log('before coord assign and flatten: data.vehicles - ', data.vehicles)
-
+          // Add coordinates property to each vehicle object and push object to flattenedData
           angular.forEach(data.vehicles, function(route) {
             angular.forEach(route, function(vehicle) {
               vehicle.coordinates = projection([vehicle.lon, vehicle.lat]);
@@ -102,11 +113,30 @@
             });
           });
 
-          console.log('flattenedData', flattenedData)
+          /**********
+            Display Vehicle Position
+          **********/
 
-          svg.selectAll('circle')
-            .remove()
+          console.log(scope.vm.activeRoutes);
+
+          //Update vehicles
+          var vehicleCircles = svg.selectAll('circle')
             .data(flattenedData)
+            .attr('cx', function(d) {
+              return d.coordinates[0];
+            })
+            .attr('cy', function(d) {
+              return d.coordinates[1];
+            })
+            .attr('r', 5)
+            .style('stroke', function(d) {
+              return scope.vm.activeRoutes[d.routeId].color;
+            })
+            .style('stroke-width', 2)
+            .style('fill', 'white');
+
+          //Add vehicles entering the dataset
+          vehicleCircles
             .enter()
             .append('circle')
             .attr('cx', function(d) {
@@ -115,12 +145,40 @@
             .attr('cy', function(d) {
               return d.coordinates[1];
             })
-            .attr('r', 3)
-            .style('fill', 'red');
+            .attr('r', 5)
+            .style('stroke', function(d) {
+              return scope.vm.activeRoutes[d.routeId].color;
+            })
+            .style('stroke-width', 2)
+            .style('fill', 'white');
 
-          svg.selectAll('text')
-            .remove()
+          //Remove vehicles that have exited the dataset
+          vehicleCircles = vehicleCircles.exit().remove();
+
+          /**********
+            Display Vehicle ID
+          **********/
+
+          // Update vehicle ID text
+          var vehicleText = svg.selectAll('text')
             .data(flattenedData)
+            .text(function(d) {
+              return d.routeId;
+            })
+            .attr('x', function(d) {
+              return d.coordinates[0];
+            })
+            .attr('y', function(d) {
+              return d.coordinates[1] + 4;
+            })
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 8)
+            .style('color', function(d) {
+              return scope.vm.activeRoutes[d.routeId].textColor;
+            });
+
+          // Add text when entering the dataset
+          vehicleText
             .enter()
             .append('text')
             .text(function(d) {
@@ -133,12 +191,21 @@
               return d.coordinates[1] + 4;
             })
             .attr('text-anchor', 'middle')
-            .attr('font-size', 5);
+            .attr('font-size', 8)
+            .style('color', function(d) {
+              return scope.vm.activeRoutes[d.routeId].textColor;
+            });
 
-        };
+          // Remove text when exiting the dataset
+          vehicleText = vehicleText.exit().remove();
+        }
       });
     }
   }
+
+  /**********
+    D3 Map Controller
+  **********/
 
   D3MapController.$inject = ['nextbusDataService'];
 
