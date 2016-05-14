@@ -15,11 +15,30 @@
       link: link,
       restrict: 'EA',
       scope: {
+        activeRoutes: "="
       }
     };
     return directive;
 
     function link(scope, element, attrs) {
+      scope.data = {vehicles: {}};
+
+      scope.$on('routeAdded', function(e, route) {
+        scope.vm.getVehiclesByRoute(route)
+          .then(function(vehicles) {
+            scope.vm.vehiclesByRoute[route] = vehicles;
+            scope.data.vehicles = scope.vm.vehiclesByRoute;
+            console.log('routeAddedData', scope.data.vehicles);
+            scope.render(scope.data);
+          });
+      });
+
+      scope.$on('routeRemoved', function(e, route) {
+        delete scope.vm.vehiclesByRoute[route];
+        delete scope.data.vehicles[route];
+        console.log('routeRemovedData', scope.data.vehicles);
+        scope.render(scope.data);
+      });
 
       d3Service.d3().then(function(d3) {
 
@@ -46,9 +65,6 @@
         window.onresize = function() {
           scope.$apply();
         };
-
-        // hard-code data
-        scope.data = [];
         
         // Watch for resize event
         scope.$watch(function() {
@@ -58,6 +74,13 @@
         });
         
         scope.render = function(data) {
+
+          var flattenedData = [];
+
+          // If we don't pass any data, return out of the element
+          if (!data) return;
+
+          console.log('render', data);
           //Load in GeoJSON data
           d3.json("/src/content/geoJSON/neighborhoods.json", function(json) {
             
@@ -70,58 +93,63 @@
                .style("fill", "steelblue");
           });
 
-          // remove all previous items before render
-          // svg.selectAll('*').remove();
-       
-          // If we don't pass any data, return out of the element
-          // if (!data) return;
-       
-          // set the height based on the calculations above
-          // svg.attr('height', height);
-       
-          //create the rectangles for the bar chart
-          // svg.selectAll('rect')
-          //   .data(data).enter()
-          //     .append('rect')
-          //     .attr('height', barHeight)
-          //     .attr('width', 140)
-          //     .attr('x', Math.round(margin/2))
-          //     .attr('y', function(d,i) {
-          //       return i * (barHeight + barPadding);
-          //     })
-          //     .attr('fill', function(d) { return color(d.score); })
-          //     .transition()
-          //       .duration(1000)
-          //       .attr('width', function(d) {
-          //         return xScale(d.score);
-          //       });
-        }
+          console.log('before coord assign and flatten: data.vehicles - ', data.vehicles)
+
+          angular.forEach(data.vehicles, function(route) {
+            angular.forEach(route, function(vehicle) {
+              vehicle.coordinates = projection([vehicle.lon, vehicle.lat]);
+              flattenedData.push(vehicle);
+            });
+          });
+
+          console.log('flattenedData', flattenedData)
+
+          svg.selectAll('circle')
+            .remove()
+            .data(flattenedData)
+            .enter()
+            .append('circle')
+            .attr('cx', function(d) {
+              return d.coordinates[0];
+            })
+            .attr('cy', function(d) {
+              return d.coordinates[1];
+            })
+            .attr('r', 3)
+            .style('fill', 'red');
+
+          svg.selectAll('text')
+            .remove()
+            .data(flattenedData)
+            .enter()
+            .append('text')
+            .text(function(d) {
+              return d.routeId;
+            })
+            .attr('x', function(d) {
+              return d.coordinates[0];
+            })
+            .attr('y', function(d) {
+              return d.coordinates[1] + 4;
+            })
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 5);
+
+        };
       });
-    }      
+    }
   }
 
   D3MapController.$inject = ['nextbusDataService'];
+
   function D3MapController(nextbusDataService) {
     var vm = this;
 
     vm.vehiclesByRoute = {};
     vm.getVehiclesByRoute = getVehiclesByRoute;
 
-    activate();
-
-    function activate() {
-      return getVehiclesByRoute().then(function() {
-        console.log('Got vehicles')
-      });
-    }
-
     function getVehiclesByRoute(route) {
-      return nextbusDataService.getVehiclesByRoute()
-        .then(function(vehicles) {
-          vm.vehiclesByRoute[route] = vehicles;
-          return vehiclesByRoute[route];
-        })
+      return nextbusDataService.getVehiclesByRoute(route)
     }
-
   }
 })();
