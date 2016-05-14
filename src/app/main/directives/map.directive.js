@@ -33,12 +33,14 @@
       scope.$on('routeAdded', function(e, route) {
         scope.vm.vehiclesByRoute[route] = scope.vm.vehicles[route];
         scope.mapData.vehicles = scope.vm.vehiclesByRoute;
+        scope.mapData.routes = scope.vm.activeRoutes;
         scope.render(scope.mapData);
       });
 
       scope.$on('routeRemoved', function(e, route) {
         delete scope.vm.vehiclesByRoute[route];
         delete scope.mapData.vehicles[route];
+        scope.mapData.routes = scope.vm.activeRoutes;
         scope.render(scope.mapData);
       });
 
@@ -126,9 +128,9 @@
             })
             .attr('r', 5)
             .style('stroke', function(d) {
-              console.log(scope.vm.activeRoutes);
-              console.log(scope.vm.activeRoutes[d.routeId]);
-              return scope.vm.activeRoutes[d.routeId].color;
+              console.log(data.routes);
+              console.log(data.routes[d.routeId]);
+              return data.routes[d.routeId].color;
             })
             .style('stroke-width', 2)
             .style('fill', 'white');
@@ -145,13 +147,13 @@
             })
             .attr('r', 5)
             .style('stroke', function(d) {
-              return scope.vm.activeRoutes[d.routeId].color;
+              return data.routes[d.routeId].color;
             })
             .style('stroke-width', 2)
             .style('fill', 'white');
 
           //Remove vehicles that have exited the dataset
-          vehicleCircles = vehicleCircles.exit().remove();
+          vehicleCircles.exit().remove();
 
           /**********
             Display Vehicle ID
@@ -172,7 +174,7 @@
             .attr('text-anchor', 'middle')
             .attr('font-size', 8)
             .style('color', function(d) {
-              return scope.vm.activeRoutes[d.routeId].textColor;
+              return data.routes[d.routeId].textColor;
             });
 
           // Add text when entering the dataset
@@ -191,11 +193,11 @@
             .attr('text-anchor', 'middle')
             .attr('font-size', 8)
             .style('color', function(d) {
-              return scope.vm.activeRoutes[d.routeId].textColor;
+              return data.routes[d.routeId].textColor;
             });
 
           // Remove text when exiting the dataset
-          vehicleText = vehicleText.exit().remove();
+          vehicleText.exit().remove();
         }
       });
     }
@@ -232,12 +234,16 @@
           });  
         })
         .then(function(groupedVehicles) {
-          return _.map(vm.vehiclesByRoute, function(route, routeId) {
-            return groupedVehicles[routeId];
+          angular.forEach(vm.vehiclesByRoute, function(route, routeId) {
+              route = groupedVehicles[routeId];
           });
+          return vm.vehiclesByRoute;
         })
         .then(function(updatedVehiclesByRoute) {
           $scope.mapData.vehicles = updatedVehiclesByRoute;
+          $scope.mapData.routes = vm.activeRoutes;
+
+          //$scope.render is initially undefined
           $scope.render && $scope.render($scope.mapData);
         });
     }
