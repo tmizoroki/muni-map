@@ -10,11 +10,22 @@
   function nextbusDataService($http, $q, AGENCY) {
     var service = {
       getRoutes: getRoutes,
-      getRoute: getRoute
+      getRoute: getRoute,
+      getVehiclesByRoute: getVehiclesByRoute
     };
     return service;
 
     ////////////////
+
+    function xhrFailed(e, name) {
+      var newMessage = 'XHR Failed for ' + name;
+      if (e.data && e.data.description) {
+        newMessage = newMessage + '\n' + e.data.description;
+      }
+      e.data.description = newMessage;
+      console.error(newMessage);
+      return $q.reject(e);
+    }
 
     function getRoutes() {
       return $http.get(['http://localhost:3000','/agencies/', AGENCY, '/routes'].join(''))
@@ -26,13 +37,7 @@
       }
 
       function getRoutesFailed(e) {
-        var newMessage = 'XHR Failed for getRoutes';
-        if (e.data && e.data.description) {
-          newMessage = newMessage + '\n' + e.data.description;
-        }
-        e.data.description = newMessage;
-        console.error(newMessage);
-        return $q.reject(e);
+        return xhrFailed(e, 'getRoutes');
       }
     }
 
@@ -47,34 +52,23 @@
       }
 
       function getRouteFailed(e) {
-        var newMessage = 'XHR Failed for getRoute';
-        if (e.data && e.data.description) {
-          newMessage = newMessage + '\n' + e.data.description;
-        }
-        e.data.description = newMessage;
-        console.error(newMessage);
-        return $q.reject(e);
+        return xhrFailed(e, 'getRoute');
       }
     }
 
-    // function getVehicles() {
-    //   return $http.get(['/agencies/', AGENCY, '/routes'].join(''))
-    //     .then(getVehiclesComplete)
-    //     .catch(getVehiclesFailed);
+    function getVehiclesByRoute(routeId) {
+      var url = ['http://localhost:3000','/agencies/', AGENCY, '/routes/', routeId, '/vehicles'].join('');
+      return $http.get(url)
+        .then(getVehiclesByRouteComplete)
+        .catch(getVehiclesByRouteFailed);
 
-    //   function getVehiclesComplete(data, status, headers, config) {
-    //     return data;
-    //   }
+      function getVehiclesByRouteComplete(data, status, headers, config) {
+        return data.data;
+      }
 
-    //   function getVehiclesFailed(e) {
-    //     var newMessage = 'XHR Failed for getVehicles';
-    //     if (e.data && e.data.description) {
-    //       newMessage = newMessage + '\n' + e.data.description;
-    //     }
-    //     e.data.description = newMessage;
-    //     console.error(newMessage);
-    //     return $q.reject(e);
-    //   }
-    // }
+      function getVehiclesByRouteFailed(e) {
+        return xhrFailed(e, 'getVehiclesByRoute');
+      }
+    }
   }
 })();
