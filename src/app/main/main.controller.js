@@ -20,16 +20,46 @@
     function activate() {
     }
 
+    function coordsToGeoJSON(routeConfig) {
+      var features = _.map(routeConfig.paths, function(path) {
+        var geometry = _.map(path, function(line) {
+          var coordinates = _.map(line, function(coord) {
+            return [coord.lon, coord.lat];
+          });
+          var geometry = {
+            type: "LineString",
+            coordinates: coordinates
+          };
+          return geometry;
+        });
+
+        var feature = {
+          type: "Feature",
+          geometry: geometry[0]
+        };
+        return feature;
+      });
+
+      routeConfig.features = {
+        type: "FeatureCollection",
+        features: features
+      };
+      delete routeConfig.paths;
+      return routeConfig;
+    }
+
     function toggleRoute(route) {
       route.active = !route.active;
-      console.log(route);
       if (route.active) {
         nextbusDataService.getRoute(route.id)
           .then(function(routeConfig) {
-            vm.activeRoutes[route.id] = routeConfig;
+            return coordsToGeoJSON(routeConfig);
+          })
+          .then(function(modifiedRoute) {
+            console.log('modifiedRoute', modifiedRoute)
+            vm.activeRoutes[route.id] = modifiedRoute;
           })
           .then(function() {
-            console.log('about to broadcast');
             $scope.$broadcast('routeAdded', route.id);
           })
           .catch(function(err) {
