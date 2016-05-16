@@ -56,7 +56,6 @@
             return coordsToGeoJSON(routeConfig);
           })
           .then(function(modifiedRoute) {
-            console.log('modifiedRoute', modifiedRoute)
             vm.activeRoutes[route.id] = modifiedRoute;
           })
           .then(function() {

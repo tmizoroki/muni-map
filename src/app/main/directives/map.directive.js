@@ -86,7 +86,6 @@
         **********/
         
         scope.render = function(data) {
-          console.log('RENDERED');
           // Empty flattenedData array
           var flattenedData = [];
 
@@ -283,7 +282,6 @@
           vm.vehicles = _.groupBy(vehicles, function(vehicle) {
             return vehicle.routeId;
           });
-          console.log('vm.vehicles', vm.vehicles);
 
           for (var routeId in vm.vehiclesByRoute) {
             vm.vehiclesByRoute[routeId] = vm.vehicles[routeId];

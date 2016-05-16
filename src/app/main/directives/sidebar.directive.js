@@ -33,7 +33,7 @@
 
     function activate() {
       return getRoutes().then(function() {
-        console.log('Got routes');
+        // Continue promise chain here
       });
     }
 
