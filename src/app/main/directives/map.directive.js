@@ -55,19 +55,19 @@
         var height = 800;
 
         var svg = d3.select(element[0])
-                    .append('svg')
-                    .attr('width', width)
-                    .attr('height', height);
-                    // .style('width', '100%');
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height);
+          // .style('width', '100%');
 
         var projection = d3.geo.mercator()
-            .center([-122.433701, 37.767683])
-            .scale(250000)
-            .translate([width / 2, height / 2]);
+          .center([-122.433701, 37.767683])
+          .scale(250000)
+          .translate([width / 2, height / 2]);
 
         //Define default path generator
         var path = d3.geo.path()
-           .projection(projection);
+         .projection(projection);
 
         //Browser onresize event
         window.onresize = function() {
@@ -95,7 +95,6 @@
 
           //Load in GeoJSON data
           d3.json("/src/content/geoJSON/neighborhoods.json", function(json) {
-            
             //Create one path per GeoJSON feature
             svg.selectAll("path")
              .data(json.features)
@@ -116,23 +115,24 @@
           /**********
             Display Vehicle Position
           **********/
+          // Join Data
+          var vehicleCircles = svg.selectAll('circle').data(flattenedData);
 
           //Update vehicles
-          var vehicleCircles = svg.selectAll('circle')
-            .data(flattenedData)
+          vehicleCircles
+            .transition()
+            .duration(1000)
             .attr('cx', function(d) {
               return d.coordinates[0];
             })
             .attr('cy', function(d) {
               return d.coordinates[1];
             })
-            .attr('r', 5)
+            .attr('r', 8)
             .style('stroke', function(d) {
-              console.log(data.routes);
-              console.log(data.routes[d.routeId]);
               return data.routes[d.routeId].color;
             })
-            .style('stroke-width', 2)
+            .style('stroke-width', 3)
             .style('fill', 'white');
 
           //Add vehicles entering the dataset
@@ -145,11 +145,13 @@
             .attr('cy', function(d) {
               return d.coordinates[1];
             })
-            .attr('r', 5)
+            .transition()
+            .duration(1000)
+            .attr('r', 8)
             .style('stroke', function(d) {
               return data.routes[d.routeId].color;
             })
-            .style('stroke-width', 2)
+            .style('stroke-width', 3)
             .style('fill', 'white');
 
           //Remove vehicles that have exited the dataset
@@ -159,17 +161,21 @@
             Display Vehicle ID
           **********/
 
+          // Join Data
+          var vehicleText = svg.selectAll('text').data(flattenedData);
+
           // Update vehicle ID text
-          var vehicleText = svg.selectAll('text')
-            .data(flattenedData)
+          vehicleText
             .text(function(d) {
               return d.routeId;
             })
+            .transition()
+            .duration(1000)
             .attr('x', function(d) {
               return d.coordinates[0];
             })
             .attr('y', function(d) {
-              return d.coordinates[1] + 4;
+              return d.coordinates[1] + 3;
             })
             .attr('text-anchor', 'middle')
             .attr('font-size', 8)
@@ -188,7 +194,7 @@
               return d.coordinates[0];
             })
             .attr('y', function(d) {
-              return d.coordinates[1] + 4;
+              return d.coordinates[1] + 3;
             })
             .attr('text-anchor', 'middle')
             .attr('font-size', 8)
@@ -198,6 +204,51 @@
 
           // Remove text when exiting the dataset
           vehicleText.exit().remove();
+
+          /**********
+            Display Stops
+          **********/
+
+          // var stops = svg.selectAll('circle').data(flattenedData);
+
+          // stops
+          //   .attr('cx', function(d) {
+          //     return data.routes.stops;
+          //   })
+          //   .attr('cy', function(d) {
+          //     return data.routes.stops;
+          //   })
+          //   .attr('r', 3)
+          //   .style('fill', function(d) {
+          //     return data.routes[d.routeId].color;
+          //   });
+
+          // stops
+          //   .attr('cx', function(d) {
+          //     return data.routes.stops;
+          //   })
+          //   .attr('cy', function(d) {
+          //     return data.routes.stops;
+          //   })
+          //   .attr('r', 3)
+          //   .style('fill', function(d) {
+          //     return data.routes[d.routeId].color;
+          //   }); 
+
+          /**********
+            Display Route
+          **********/
+          // console.log(data.routes);
+          // svg.selectAll('path')
+          //   .data(data.routes, function(d) {
+          //     // console.log('d', d);
+          //     return d;
+          //   })
+          //   .enter()
+          //   .append('path')
+          //   .attr("d", path)
+          //   .style("fill", "red");
+
         }
       });
     }
@@ -229,21 +280,17 @@
     function getVehicles() {
       return nextbusDataService.getVehicles()
         .then(function(vehicles) {
-          return vm.vehicles = _.groupBy(vehicles, function(vehicle) {
+          vm.vehicles = _.groupBy(vehicles, function(vehicle) {
             return vehicle.routeId;
-          });  
-        })
-        .then(function(groupedVehicles) {
-          angular.forEach(vm.vehiclesByRoute, function(route, routeId) {
-              route = groupedVehicles[routeId];
           });
-          return vm.vehiclesByRoute;
-        })
-        .then(function(updatedVehiclesByRoute) {
-          $scope.mapData.vehicles = updatedVehiclesByRoute;
-          $scope.mapData.routes = vm.activeRoutes;
+          console.log('vm.vehicles', vm.vehicles);
 
-          //$scope.render is initially undefined
+          for (var routeId in vm.vehiclesByRoute) {
+            vm.vehiclesByRoute[routeId] = vm.vehicles[routeId];
+          }
+
+          $scope.mapData.vehicles = vm.vehiclesByRoute;
+
           $scope.render && $scope.render($scope.mapData);
         });
     }
